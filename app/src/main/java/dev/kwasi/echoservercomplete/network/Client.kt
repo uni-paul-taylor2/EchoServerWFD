@@ -3,52 +3,57 @@ package dev.kwasi.echoservercomplete.network
 import android.util.Log
 import com.google.gson.Gson
 import dev.kwasi.echoservercomplete.models.ContentModel
+import dev.kwasi.echoservercomplete.models.SocketModel
 import java.io.BufferedReader
 import java.io.BufferedWriter
 import java.net.Socket
 import kotlin.concurrent.thread
+import dev.kwasi.echoservercomplete.network.ApplicationCipher
 
 class Client (private val networkMessageInterface: NetworkMessageInterface){
-    private lateinit var clientSocket: Socket
-    private lateinit var reader: BufferedReader
-    private lateinit var writer: BufferedWriter
+    private lateinit var client: SocketModel
+    private var groupOwnerIP: String = "192.168.49.1"
+    private var serverPort: Int = 9999
     var ip:String = ""
 
     init {
         thread {
-            clientSocket = Socket("192.168.49.1", Server.PORT)
-            reader = clientSocket.inputStream.bufferedReader()
-            writer = clientSocket.outputStream.bufferedWriter()
-            ip = clientSocket.inetAddress.hostAddress!!
-            while(true){
-                try{
-                    val serverResponse = reader.readLine()
-                    if (serverResponse != null){
-                        val serverContent = Gson().fromJson(serverResponse, ContentModel::class.java)
-                        networkMessageInterface.onContent(serverContent)
-                    }
-                } catch(e: Exception){
-                    Log.e("CLIENT", "An error has occurred in the client")
-                    e.printStackTrace()
-                    break
+            client = SocketModel( Socket(groupOwnerIP, serverPort) )
+            ip = client.socket.inetAddress.hostAddress!!
+            try {
+                //clientside handshake start
+                client.send("I am here")
+                val nonce: String = client.read()
+                client.send(client.cipher.sign(nonce)) //enc(hash(student_id), nonce)
+                //clientside handshake stop
+
+                while (client.socket.isConnected) {
+                    networkMessageInterface.onContent( client.readMessage(true) )
                 }
+            }
+            catch(e: Exception){
+                Log.e("CLIENT", "An error has occurred in the client")
+                e.printStackTrace()
             }
         }
     }
 
-    fun sendMessage(content: ContentModel){
-        thread {
-            if (!clientSocket.isConnected){
-                throw Exception("We aren't currently connected to the server!")
-            }
-            val contentAsStr:String = Gson().toJson(content)
-            writer.write("$contentAsStr\n")
-            writer.flush()
+    fun sendMessage(text: String){
+        thread{
+            client.sendMessage(ContentModel(text,groupOwnerIP),true)
         }
+    }
+    fun sendMessage(content: ContentModel){
+        thread{
+            client.sendMessage(content,true)
+        }
+    }
 
+    fun setStudentID(id: String): Boolean{
+        return client.cipher.setStudentID(id)
     }
 
     fun close(){
-        clientSocket.close()
+        client.socket.close()
     }
 }

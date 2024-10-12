@@ -3,6 +3,9 @@ package dev.kwasi.echoservercomplete.network
 import android.util.Log
 import com.google.gson.Gson
 import dev.kwasi.echoservercomplete.models.ContentModel
+import dev.kwasi.echoservercomplete.models.SocketModel
+import java.io.BufferedReader
+import java.io.BufferedWriter
 import java.net.InetAddress
 import java.net.ServerSocket
 import java.net.Socket
@@ -17,64 +20,48 @@ class Server(private val iFaceImpl:NetworkMessageInterface) {
         const val PORT: Int = 9999
 
     }
-
-    private val svrSocket: ServerSocket = ServerSocket(PORT, 0, InetAddress.getByName("192.168.49.1"))
-    private val clientMap: HashMap<String, Socket> = HashMap()
+    private var ip: String = "192.168.49.1"
+    private val svrSocket: ServerSocket = ServerSocket(PORT, 0, InetAddress.getByName(ip))
+    private val clientMap: HashMap<String, SocketModel> = HashMap()
 
     init {
         thread{
             while(true){
+                val client = SocketModel(svrSocket.accept())
+                val clientAddress: String = client.socket.inetAddress.hostAddress!!
                 try{
-                    val clientConnectionSocket = svrSocket.accept()
-                    Log.e("SERVER", "The server has accepted a connection: ")
-                    handleSocket(clientConnectionSocket)
+                    //serverside handshake start
+                    if(client.read()!="I am here")
+                        throw Exception("Client Handshake Failed");
+                    client.send(client.cipher.makeNonce())
+                    if( !client.cipher.verify(client.read()) )
+                        throw Exception("Client Handshake Failed");
+                    //serverside handshake stop
 
-                }catch (e: Exception){
-                    Log.e("SERVER", "An error has occurred in the server!")
+                    clientMap.set(clientAddress,client) //added to the map after handshake complete
+                    Log.e("SERVER", "The server has accepted a connection")
+                    while(client.socket.isConnected){
+                        iFaceImpl.onContent( client.readMessage(true) )
+                    }
+                }
+                catch (e: Exception){
+                    if(client.socket.isConnected) client.socket.close();
+                    clientMap.remove(clientAddress)
+                    Log.e("SERVER", "An error occurred while handling a client")
                     e.printStackTrace()
                 }
             }
         }
     }
 
-
-    private fun handleSocket(socket: Socket){
-        socket.inetAddress.hostAddress?.let {
-            clientMap[it] = socket
-            Log.e("SERVER", "A new connection has been detected!")
-            thread {
-                val clientReader = socket.inputStream.bufferedReader()
-                val clientWriter = socket.outputStream.bufferedWriter()
-                var receivedJson: String?
-
-                while(socket.isConnected){
-                    try{
-                        receivedJson = clientReader.readLine()
-                        if (receivedJson!= null){
-                            Log.e("SERVER", "Received a message from client $it")
-                            val clientContent = Gson().fromJson(receivedJson, ContentModel::class.java)
-                            val reversedContent = ContentModel(clientContent.message.reversed(), "192.168.49.1")
-
-                            val reversedContentStr = Gson().toJson(reversedContent)
-                            clientWriter.write("$reversedContentStr\n")
-                            clientWriter.flush()
-
-                            // To show the correct alignment of the items (on the server), I'd swap the IP that it came from the client
-                            // This is some OP hax that gets the job done but is not the best way of getting it done.
-                            val tmpIp = clientContent.senderIp
-                            clientContent.senderIp = reversedContent.senderIp
-                            reversedContent.senderIp = tmpIp
-
-                            iFaceImpl.onContent(clientContent)
-                            iFaceImpl.onContent(reversedContent)
-
-                        }
-                    } catch (e: Exception){
-                        Log.e("SERVER", "An error has occurred with the client $it")
-                        e.printStackTrace()
-                    }
-                }
-            }
+    fun sendMessage(clientAddress: String, text: String){
+        thread{
+            clientMap.get(clientAddress)?.send(text,true)
+        }
+    }
+    fun sendMessage(clientAddress: String, content: ContentModel){
+        thread{
+            clientMap.get(clientAddress)?.sendMessage(content,true)
         }
     }
 
