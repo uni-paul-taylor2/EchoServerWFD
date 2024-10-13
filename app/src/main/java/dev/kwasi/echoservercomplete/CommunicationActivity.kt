@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import dev.kwasi.echoservercomplete.chatlist.ChatListAdapter
 import dev.kwasi.echoservercomplete.models.ContentModel
+import dev.kwasi.echoservercomplete.network.ApplicationCipher
 import dev.kwasi.echoservercomplete.network.Client
 import dev.kwasi.echoservercomplete.network.NetworkMessageInterface
 import dev.kwasi.echoservercomplete.network.Server
@@ -35,6 +36,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION)
         addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION)
     }
+    private val testCipher: ApplicationCipher = ApplicationCipher()
 
     private var peerListAdapter:PeerListAdapter? = null
     private var chatListAdapter:ChatListAdapter? = null
@@ -95,7 +97,12 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
     }
 
     fun setStudentID(id: String){
-        student_id = id
+        if(testCipher.setStudentID(id)){
+            student_id = id
+            return
+        }
+        val toast: Toast = Toast.makeText(this,"Given Student ID is NOT valid",Toast.LENGTH_SHORT)
+        toast.show()
     }
 
     private fun updateUI(){
