@@ -45,6 +45,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
     private var server: Server? = null
     private var client: Client? = null
     private var deviceIp: String = ""
+    private var student_id: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -84,12 +85,17 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
             unregisterReceiver(it)
         }
     }
+
     fun createGroup(view: View) {
         wfdManager?.createGroup()
     }
 
     fun discoverNearbyPeers(view: View) {
         wfdManager?.discoverPeers()
+    }
+
+    fun setStudentID(id: String){
+        student_id = id
     }
 
     private fun updateUI(){
@@ -163,7 +169,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
             server = Server(this)
             deviceIp = "192.168.49.1"
         } else if (!groupInfo.isGroupOwner && client == null) {
-            client = Client(this)
+            client = Client(this, student_id)
             deviceIp = client!!.ip
         }
     }

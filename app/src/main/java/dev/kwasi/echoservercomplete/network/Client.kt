@@ -10,7 +10,7 @@ import java.net.Socket
 import kotlin.concurrent.thread
 import dev.kwasi.echoservercomplete.network.ApplicationCipher
 
-class Client (private val networkMessageInterface: NetworkMessageInterface){
+class Client (private val networkMessageInterface: NetworkMessageInterface, student_id: String){
     private lateinit var client: SocketModel
     private var groupOwnerIP: String = "192.168.49.1"
     private var serverPort: Int = 9999
@@ -20,6 +20,7 @@ class Client (private val networkMessageInterface: NetworkMessageInterface){
         thread {
             client = SocketModel( Socket(groupOwnerIP, serverPort) )
             ip = client.socket.inetAddress.hostAddress!!
+            client.cipher.setStudentID(student_id)
             try {
                 //clientside handshake start
                 client.send("I am here")
@@ -47,10 +48,6 @@ class Client (private val networkMessageInterface: NetworkMessageInterface){
         thread{
             client.sendMessage(content,true)
         }
-    }
-
-    fun setStudentID(id: String): Boolean{
-        return client.cipher.setStudentID(id)
     }
 
     fun close(){
