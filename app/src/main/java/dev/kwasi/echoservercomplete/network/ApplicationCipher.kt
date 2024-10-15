@@ -13,14 +13,14 @@ fun ByteArray.toHex() = joinToString(separator = "") { byte -> "%02x".format(byt
 fun getFirstNChars(str: String, n:Int) = str.substring(0,n)
 
 class ApplicationCipher (){ //do note that AES_ENC(student_id,data) encrypts with hash(student_id) :D
-    private val student_ids: Array<String> = arrayOf("816033518","816035169"); //list of all ids
-    private var student_id: String? = null;
+    private val student_ids: Array<String> = arrayOf("816033518","816035169") //list of all ids
+    private var student_id: String? = null
     private var nonce: String? = null
     fun hash(content: ContentModel): ContentModel{
         val hashedMessage: String =
             MessageDigest.getInstance("SHA-256")
             .digest(content.message.toByteArray()).toHex()
-        return ContentModel(hashedMessage, content.senderIp)
+        return ContentModel(hashedMessage, content.student_id)
     }
     fun hash(content: String): String{
         return MessageDigest.getInstance("SHA-256")
@@ -64,6 +64,9 @@ class ApplicationCipher (){ //do note that AES_ENC(student_id,data) encrypts wit
         student_id = id
         return true
     }
+    fun getStudentID(): String?{
+        return student_id
+    }
 
     fun makeNonce(): String {
         nonce = UUID.randomUUID().toString()
@@ -90,7 +93,7 @@ class ApplicationCipher (){ //do note that AES_ENC(student_id,data) encrypts wit
     fun encrypt(text: ContentModel): ContentModel {
         return ContentModel(
             AES_ENC(student_id!!,text.message),
-            text.senderIp
+            text.student_id
         )
     }
 
@@ -100,7 +103,7 @@ class ApplicationCipher (){ //do note that AES_ENC(student_id,data) encrypts wit
     fun decrypt(text: ContentModel): ContentModel {
         return ContentModel(
             AES_DEC(student_id!!,text.message),
-            text.senderIp
+            text.student_id
         )
     }
 }

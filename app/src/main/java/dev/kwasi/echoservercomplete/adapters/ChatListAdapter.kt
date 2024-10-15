@@ -1,21 +1,18 @@
-package dev.kwasi.echoservercomplete.chatlist
+package dev.kwasi.echoservercomplete.adapters
 
-import android.annotation.SuppressLint
-import android.net.wifi.p2p.WifiP2pDevice
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.RelativeLayout
 import android.widget.TextView
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.RecyclerView
 import dev.kwasi.echoservercomplete.R
 import dev.kwasi.echoservercomplete.models.ContentModel
-import dev.kwasi.echoservercomplete.peerlist.PeerListAdapter
 
-class ChatListAdapter : RecyclerView.Adapter<ChatListAdapter.ViewHolder>(){
+class ChatListAdapter(isStudent: Boolean) : RecyclerView.Adapter<ChatListAdapter.ViewHolder>(){
     private val chatList:MutableList<ContentModel> = mutableListOf()
+    private val student:Boolean = isStudent
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val messageView: TextView = itemView.findViewById(R.id.messageTextView)
@@ -28,8 +25,17 @@ class ChatListAdapter : RecyclerView.Adapter<ChatListAdapter.ViewHolder>(){
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val chat = chatList[position]
-        (holder.messageView.parent as RelativeLayout).gravity = if (chat.senderIp=="192.168.49.1") Gravity.START else Gravity.END
-        holder.messageView.text = chat.message
+        if(student) {
+            (holder.messageView.parent as RelativeLayout).gravity =
+                if (chat.student_id == "192.168.49.1") Gravity.START else Gravity.END;
+        }
+        else {
+            (holder.messageView.parent as RelativeLayout).gravity =
+                if (chat.student_id == "192.168.49.1") Gravity.START else Gravity.END;
+        }
+        val message: String = chat.message
+        val studentID: String = chat.student_id
+        holder.messageView.text = "$studentID: $message"
 
     }
 

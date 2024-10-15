@@ -16,18 +16,21 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import dev.kwasi.echoservercomplete.chatlist.ChatListAdapter
+import dev.kwasi.echoservercomplete.adapters.ChatListAdapter
 import dev.kwasi.echoservercomplete.models.ContentModel
+import dev.kwasi.echoservercomplete.adapters.PeerListAdapter
+import dev.kwasi.echoservercomplete.adapters.PeerListAdapterInterface
+import dev.kwasi.echoservercomplete.adapters.AttendeeListAdapter
 import dev.kwasi.echoservercomplete.network.ApplicationCipher
 import dev.kwasi.echoservercomplete.network.Client
 import dev.kwasi.echoservercomplete.network.NetworkMessageInterface
 import dev.kwasi.echoservercomplete.network.Server
-import dev.kwasi.echoservercomplete.peerlist.PeerListAdapter
-import dev.kwasi.echoservercomplete.peerlist.PeerListAdapterInterface
-import dev.kwasi.echoservercomplete.wifidirect.WifiDirectInterface
-import dev.kwasi.echoservercomplete.wifidirect.WifiDirectManager
+import dev.kwasi.echoservercomplete.network.WifiDirectInterface
+import dev.kwasi.echoservercomplete.network.WifiDirectManager
 
-class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerListAdapterInterface, NetworkMessageInterface {
+//treated as student side
+class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerListAdapterInterface,
+    NetworkMessageInterface {
     private var wfdManager: WifiDirectManager? = null
 
     private val intentFilter = IntentFilter().apply {
@@ -38,7 +41,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
     }
     private val testCipher: ApplicationCipher = ApplicationCipher()
 
-    private var peerListAdapter:PeerListAdapter? = null
+    private var peerListAdapter: PeerListAdapter? = null
     private var chatListAdapter:ChatListAdapter? = null
 
     private var wfdAdapterEnabled = false
@@ -68,8 +71,10 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         rvPeerList.adapter = peerListAdapter
         rvPeerList.layoutManager = LinearLayoutManager(this)
 
-        chatListAdapter = ChatListAdapter()
-        val rvChatList: RecyclerView = findViewById(R.id.rvChat)
+        chatListAdapter = ChatListAdapter(true) //studentcode
+        val rvChatList: RecyclerView = findViewById(R.id.rvStudentChat) //studentcode
+        //chatListAdapter = ChatListAdapter(false) //servercode
+        //val rvChatList: RecyclerView = findViewById(R.id.rvServerChat) //servercode
         rvChatList.adapter = chatListAdapter
         rvChatList.layoutManager = LinearLayoutManager(this)
     }
@@ -93,16 +98,19 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
     }
 
     fun discoverNearbyPeers(view: View) {
-        wfdManager?.discoverPeers()
+        val studentID: String = findViewById<EditText>(R.id.studentID).text.toString()
+        if(setStudentID(studentID))
+            wfdManager?.discoverPeers();
     }
 
-    fun setStudentID(id: String){
+    fun setStudentID(id: String): Boolean{
         if(testCipher.setStudentID(id)){
             student_id = id
-            return
+            return true
         }
         val toast: Toast = Toast.makeText(this,"Given Student ID is NOT valid",Toast.LENGTH_SHORT)
         toast.show()
+        return false
     }
 
     private fun updateUI(){
@@ -117,24 +125,35 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         val wfdAdapterErrorView:ConstraintLayout = findViewById(R.id.clWfdAdapterDisabled)
         wfdAdapterErrorView.visibility = if (!wfdAdapterEnabled) View.VISIBLE else View.GONE
 
-        val wfdNoConnectionView:ConstraintLayout = findViewById(R.id.clNoWifiDirectConnection)
-        wfdNoConnectionView.visibility = if (wfdAdapterEnabled && !wfdHasConnection) View.VISIBLE else View.GONE
+        val wfdNoConnectionView:ConstraintLayout = findViewById(R.id.studentOnboarding) //studentcode
+        wfdNoConnectionView.visibility = if (wfdAdapterEnabled && !wfdHasConnection) View.VISIBLE else View.GONE //studentcode
+        //val wfdNoConnectionView:ConstraintLayout = findViewById(R.id.serverOnboarding) //servercode
+        //wfdNoConnectionView.visibility = if (wfdAdapterEnabled && !wfdHasConnection) View.VISIBLE else View.GONE
 
         val rvPeerList: RecyclerView= findViewById(R.id.rvPeerListing)
         rvPeerList.visibility = if (wfdAdapterEnabled && !wfdHasConnection && hasDevices) View.VISIBLE else View.GONE
 
-        val wfdConnectedView:ConstraintLayout = findViewById(R.id.clHasConnection)
-        wfdConnectedView.visibility = if(wfdHasConnection)View.VISIBLE else View.GONE
+        val wfdConnectedView:ConstraintLayout = findViewById(R.id.studentChat) //studentcode
+        wfdConnectedView.visibility = if(wfdHasConnection)View.VISIBLE else View.GONE //studentcode
+        //val wfdConnectedView:ConstraintLayout = findViewById(R.id.studentChat) //servercode
+        //wfdConnectedView.visibility = if(wfdHasConnection)View.VISIBLE else View.GONE //servercode
     }
 
-    fun sendMessage(view: View) {
-        val etMessage:EditText = findViewById(R.id.etMessage)
-        val etString = etMessage.text.toString()
-        val content = ContentModel(etString, deviceIp)
-        etMessage.text.clear()
+    fun clientSendMessage(view: View){
+        val elem: EditText = findViewById(R.id.clientETMessage)
+        val text: String = elem.text.toString()
+        elem.text.clear()
+        val content: ContentModel = ContentModel(text,student_id)
         client?.sendMessage(content)
         chatListAdapter?.addItemToEnd(content)
-
+    }
+    fun serverSendMessage(view: View){
+        val elem: EditText = findViewById(R.id.serverETMessage)
+        val text: String = elem.text.toString()
+        elem.text.clear()
+        val content: ContentModel = ContentModel(text,server?.ip!!)
+        server?.sendMessage(AttendeeListAdapter.student_id,content)
+        chatListAdapter?.addItemToEnd(content)
     }
 
     override fun onWiFiDirectStateChanged(isEnabled: Boolean) {

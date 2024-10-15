@@ -1,4 +1,4 @@
-package dev.kwasi.echoservercomplete.peerlist
+package dev.kwasi.echoservercomplete.adapters
 
 import android.net.wifi.p2p.WifiP2pDevice
 

@@ -1,4 +1,4 @@
-package dev.kwasi.echoservercomplete.peerlist
+package dev.kwasi.echoservercomplete.adapters
 
 import android.annotation.SuppressLint
 import android.net.wifi.p2p.WifiP2pDevice
@@ -9,7 +9,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import dev.kwasi.echoservercomplete.R
 
-class PeerListAdapter(private val iFaceImpl:PeerListAdapterInterface): RecyclerView.Adapter<PeerListAdapter.ViewHolder>() {
+class PeerListAdapter(private val iFaceImpl: PeerListAdapterInterface): RecyclerView.Adapter<PeerListAdapter.ViewHolder>() {
     private val peersList:MutableList<WifiP2pDevice> = mutableListOf()
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {

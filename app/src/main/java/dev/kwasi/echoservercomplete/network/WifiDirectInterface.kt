@@ -1,4 +1,4 @@
-package dev.kwasi.echoservercomplete.wifidirect
+package dev.kwasi.echoservercomplete.network
 
 import android.net.wifi.p2p.WifiP2pDevice
 import android.net.wifi.p2p.WifiP2pGroup
