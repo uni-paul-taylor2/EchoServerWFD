@@ -1,6 +1,7 @@
 package dev.kwasi.echoservercomplete.network
 
 import android.util.Log
+import dev.kwasi.echoservercomplete.adapters.AttendeeListAdapter
 import dev.kwasi.echoservercomplete.models.ContentModel
 import dev.kwasi.echoservercomplete.models.SocketModel
 import java.net.InetAddress
@@ -11,7 +12,7 @@ import kotlin.concurrent.thread
 /// The [Server] class has all the functionality that is responsible for the 'server' connection.
 /// This is implemented using TCP. This Server class is intended to be run on the GO.
 
-class Server(private val iFaceImpl:NetworkMessageInterface) {
+class Server(private val iFaceImpl:NetworkMessageInterface, attendees: AttendeeListAdapter) {
     companion object {
         const val PORT: Int = 9999
 
@@ -19,6 +20,7 @@ class Server(private val iFaceImpl:NetworkMessageInterface) {
     var ip: String = "192.168.49.1"
     private val svrSocket: ServerSocket = ServerSocket(PORT, 0, InetAddress.getByName(ip))
     private val clientMap: HashMap<String, SocketModel> = HashMap()
+    private val attendeeListAdapter: AttendeeListAdapter = attendees
 
     init {
         thread{
@@ -37,6 +39,7 @@ class Server(private val iFaceImpl:NetworkMessageInterface) {
 
                     clientStudentID = client.cipher.getStudentID()!!
                     clientMap.set(clientStudentID,client) //added to the map after handshake complete
+                    updateAttendeeList()
                     Log.e("SERVER", "The server has accepted a connection")
                     while(client.socket.isConnected){
                         iFaceImpl.onContent( client.readMessage(true) )
@@ -45,11 +48,20 @@ class Server(private val iFaceImpl:NetworkMessageInterface) {
                 catch (e: Exception){
                     if(client.socket.isConnected) client.socket.close();
                     clientMap.remove(clientStudentID)
+                    updateAttendeeList()
                     Log.e("SERVER", "An error occurred while handling a client")
                     e.printStackTrace()
                 }
             }
         }
+    }
+
+    private fun updateAttendeeList(){
+        val students: MutableList<String> = mutableListOf()
+        for(key in clientMap.keys){
+            students.add(key)
+        }
+        attendeeListAdapter.updateAttendeesList(students)
     }
 
     fun sendMessage(clientStudentID: String, text: String){

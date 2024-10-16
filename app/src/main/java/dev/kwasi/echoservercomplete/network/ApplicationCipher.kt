@@ -13,7 +13,7 @@ fun ByteArray.toHex() = joinToString(separator = "") { byte -> "%02x".format(byt
 fun getFirstNChars(str: String, n:Int) = str.substring(0,n)
 
 class ApplicationCipher (){ //do note that AES_ENC(student_id,data) encrypts with hash(student_id) :D
-    private val student_ids: Array<String> = arrayOf("816033518","816035169") //list of all ids
+    private val student_ids: Array<String> = arrayOf("816033518","816035169","816117992") //list of all ids
     private var student_id: String? = null
     private var nonce: String? = null
     fun hash(content: ContentModel): ContentModel{
@@ -53,13 +53,13 @@ class ApplicationCipher (){ //do note that AES_ENC(student_id,data) encrypts wit
     }
 
     fun setStudentID(id: String): Boolean{
-        var exists: Boolean = false
-        for(ID in student_ids){
+        var exists: Boolean = id.length == 9 && id.startsWith("81")
+        /*for(ID in student_ids){
             if(ID==id){
                 exists = true
                 break
             }
-        }
+        }*/
         if(!exists) return false;
         student_id = id
         return true

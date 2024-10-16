@@ -8,6 +8,7 @@ import android.net.wifi.p2p.WifiP2pManager
 import android.os.Bundle
 import android.view.View
 import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -21,6 +22,7 @@ import dev.kwasi.echoservercomplete.models.ContentModel
 import dev.kwasi.echoservercomplete.adapters.PeerListAdapter
 import dev.kwasi.echoservercomplete.adapters.PeerListAdapterInterface
 import dev.kwasi.echoservercomplete.adapters.AttendeeListAdapter
+import dev.kwasi.echoservercomplete.adapters.AttendeeListAdapterInterface
 import dev.kwasi.echoservercomplete.network.ApplicationCipher
 import dev.kwasi.echoservercomplete.network.Client
 import dev.kwasi.echoservercomplete.network.NetworkMessageInterface
@@ -30,7 +32,7 @@ import dev.kwasi.echoservercomplete.network.WifiDirectManager
 
 //treated as student side
 class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerListAdapterInterface,
-    NetworkMessageInterface {
+    NetworkMessageInterface, AttendeeListAdapterInterface {
     private var wfdManager: WifiDirectManager? = null
 
     private val intentFilter = IntentFilter().apply {
@@ -43,6 +45,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
 
     private var peerListAdapter: PeerListAdapter? = null
     private var chatListAdapter:ChatListAdapter? = null
+    private var attendeeListAdapter: AttendeeListAdapter? = null
 
     private var wfdAdapterEnabled = false
     private var wfdHasConnection = false
@@ -77,6 +80,11 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         //val rvChatList: RecyclerView = findViewById(R.id.rvServerChat) //servercode
         rvChatList.adapter = chatListAdapter
         rvChatList.layoutManager = LinearLayoutManager(this)
+
+        attendeeListAdapter = AttendeeListAdapter(this)
+        val attendees: RecyclerView = findViewById(R.id.attendees)
+        attendees.adapter = attendeeListAdapter
+        attendees.layoutManager = LinearLayoutManager(this)
     }
 
     override fun onResume() {
@@ -114,6 +122,12 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
     }
 
     private fun updateUI(){
+        //make them all invisible at first
+        findViewById<ConstraintLayout>(R.id.clWfdAdapterDisabled).visibility = View.GONE
+        findViewById<ConstraintLayout>(R.id.studentOnboarding).visibility = View.GONE
+        findViewById<ConstraintLayout>(R.id.serverOnboarding).visibility = View.GONE
+        findViewById<ConstraintLayout>(R.id.studentChat).visibility = View.GONE
+        findViewById<ConstraintLayout>(R.id.serverChat).visibility = View.GONE
         //The rules for updating the UI are as follows:
         // IF the WFD adapter is NOT enabled then
         //      Show UI that says turn on the wifi adapter
@@ -135,7 +149,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
 
         val wfdConnectedView:ConstraintLayout = findViewById(R.id.studentChat) //studentcode
         wfdConnectedView.visibility = if(wfdHasConnection)View.VISIBLE else View.GONE //studentcode
-        //val wfdConnectedView:ConstraintLayout = findViewById(R.id.studentChat) //servercode
+        //val wfdConnectedView:ConstraintLayout = findViewById(R.id.serverChat) //servercode
         //wfdConnectedView.visibility = if(wfdHasConnection)View.VISIBLE else View.GONE //servercode
     }
 
@@ -152,7 +166,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         val text: String = elem.text.toString()
         elem.text.clear()
         val content: ContentModel = ContentModel(text,server?.ip!!)
-        server?.sendMessage(AttendeeListAdapter.student_id,content)
+        server?.sendMessage(student_id,content)
         chatListAdapter?.addItemToEnd(content)
     }
 
@@ -180,9 +194,10 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
 
     override fun onGroupStatusChanged(groupInfo: WifiP2pGroup?) {
         val text = if (groupInfo == null){
-            "Group is not formed"
+            "Class is not formed"
         } else {
-            "Group has been formed"
+            if(groupInfo.isGroupOwner){"Class has been formed"}
+            else{"Class has been joined"}
         }
         val toast = Toast.makeText(this, text , Toast.LENGTH_SHORT)
         toast.show()
@@ -192,11 +207,16 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
             server?.close()
             client?.close()
         } else if (groupInfo.isGroupOwner && server == null){
-            server = Server(this)
+            server = Server(this,attendeeListAdapter!!)
             deviceIp = "192.168.49.1"
         } else if (!groupInfo.isGroupOwner && client == null) {
             client = Client(this, student_id)
             deviceIp = client!!.ip
+        }
+        runOnUiThread {
+            val ssid: String = if(groupInfo==null){""}else{groupInfo.networkName}
+            val pass: String = if(groupInfo==null){""}else{groupInfo.passphrase}
+            findViewById<TextView>(R.id.network_info).text = "Network: $ssid\nPassword: $pass"
         }
     }
 
@@ -213,6 +233,13 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
     override fun onContent(content: ContentModel) {
         runOnUiThread{
             chatListAdapter?.addItemToEnd(content)
+        }
+    }
+
+    override fun onNewStudent(student: String){
+        student_id = student
+        runOnUiThread{
+            findViewById<TextView>(R.id.student_chat_header).text = "Student Chat - $student"
         }
     }
 
