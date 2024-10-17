@@ -218,6 +218,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
             val pass: String = if(groupInfo==null){""}else{groupInfo.passphrase}
             findViewById<TextView>(R.id.network_info).text = "Network: $ssid\nPassword: $pass"
         }
+        updateUI()
     }
 
     override fun onDeviceStatusChanged(thisDevice: WifiP2pDevice) {
