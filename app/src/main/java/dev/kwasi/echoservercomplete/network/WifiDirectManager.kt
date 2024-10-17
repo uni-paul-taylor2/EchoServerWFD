@@ -118,6 +118,7 @@ class WifiDirectManager(
         manager.removeGroup(channel, object : ActionListener {
             override fun onSuccess() {
                 Log.e("WFDManager","Successfully disconnected from the group")
+                iFaceImpl.onGroupStatusChanged(null,true)
             }
             override fun onFailure(reason: Int) {
                 Log.e("WFDManager","An error occurred while trying to disconnect from the group")

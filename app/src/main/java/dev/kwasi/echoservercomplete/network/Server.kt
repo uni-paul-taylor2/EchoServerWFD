@@ -24,7 +24,7 @@ class Server(private val iFaceImpl:NetworkMessageInterface, attendees: AttendeeL
 
     init {
         thread{
-            while(true){
+            while(true){try{
                 val client = SocketModel(svrSocket.accept())
                 //val clientAddress: String = client.socket.inetAddress.hostAddress!!
                 var clientStudentID: String = ""
@@ -52,7 +52,7 @@ class Server(private val iFaceImpl:NetworkMessageInterface, attendees: AttendeeL
                     Log.e("SERVER", "An error occurred while handling a client")
                     e.printStackTrace()
                 }
-            }
+            }catch(e: Exception){}}
         }
     }
 

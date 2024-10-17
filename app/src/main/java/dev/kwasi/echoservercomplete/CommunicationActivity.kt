@@ -106,7 +106,9 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
     }
 
     fun endGroup(view: View){
-        //
+        wfdManager?.disconnect()
+        wfdHasConnection=false
+        wfdAdapterEnabled=true
     }
 
     fun discoverNearbyPeers(view: View) {
@@ -196,7 +198,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         updateUI()
     }
 
-    override fun onGroupStatusChanged(groupInfo: WifiP2pGroup?) {
+    override fun onGroupStatusChanged(groupInfo: WifiP2pGroup?, suppressToast: Boolean) {
         val text = if (groupInfo == null){
             "Class failed to form; try toggling (turning off then on) the wifi button"
         } else {
@@ -204,7 +206,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
             else{"Class has been joined"}
         }
         val toast = Toast.makeText(this, text , Toast.LENGTH_SHORT)
-        toast.show()
+        if(!suppressToast) toast.show();
         wfdHasConnection = groupInfo != null
 
         if (groupInfo == null){
