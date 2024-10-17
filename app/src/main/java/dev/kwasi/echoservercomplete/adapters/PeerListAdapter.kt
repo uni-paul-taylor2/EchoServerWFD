@@ -2,6 +2,7 @@ package dev.kwasi.echoservercomplete.adapters
 
 import android.annotation.SuppressLint
 import android.net.wifi.p2p.WifiP2pDevice
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup

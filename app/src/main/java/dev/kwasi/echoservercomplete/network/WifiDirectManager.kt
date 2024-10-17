@@ -79,6 +79,7 @@ class WifiDirectManager(
 
             override fun onFailure(reason: Int) {
                 Log.e("WFDManager","An error occurred while trying to create a group")
+                iFaceImpl.onGroupStatusChanged(null)
             }
 
         })

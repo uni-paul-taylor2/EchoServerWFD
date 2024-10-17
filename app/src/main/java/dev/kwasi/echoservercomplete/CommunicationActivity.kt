@@ -74,10 +74,10 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         rvPeerList.adapter = peerListAdapter
         rvPeerList.layoutManager = LinearLayoutManager(this)
 
-        chatListAdapter = ChatListAdapter(true) //studentcode
-        val rvChatList: RecyclerView = findViewById(R.id.rvStudentChat) //studentcode
-        //chatListAdapter = ChatListAdapter(false) //servercode
-        //val rvChatList: RecyclerView = findViewById(R.id.rvServerChat) //servercode
+        //chatListAdapter = ChatListAdapter(true) //studentcode
+        //val rvChatList: RecyclerView = findViewById(R.id.rvStudentChat) //studentcode
+        chatListAdapter = ChatListAdapter(false) //servercode
+        val rvChatList: RecyclerView = findViewById(R.id.rvServerChat) //servercode
         rvChatList.adapter = chatListAdapter
         rvChatList.layoutManager = LinearLayoutManager(this)
 
@@ -103,6 +103,10 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
 
     fun createGroup(view: View) {
         wfdManager?.createGroup()
+    }
+
+    fun endGroup(view: View){
+        //
     }
 
     fun discoverNearbyPeers(view: View) {
@@ -132,25 +136,25 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         // IF the WFD adapter is NOT enabled then
         //      Show UI that says turn on the wifi adapter
         // ELSE IF there is NO WFD connection then i need to show a view that allows the user to either
-            // 1) create a group with them as the group owner OR
-            // 2) discover nearby groups
+        // 1) create a group with them as the group owner OR
+        // 2) discover nearby groups
         // ELSE IF there are nearby groups found, i need to show them in a list
         // ELSE IF i have a WFD connection i need to show a chat interface where i can send/receive messages
         val wfdAdapterErrorView:ConstraintLayout = findViewById(R.id.clWfdAdapterDisabled)
         wfdAdapterErrorView.visibility = if (!wfdAdapterEnabled) View.VISIBLE else View.GONE
 
-        val wfdNoConnectionView:ConstraintLayout = findViewById(R.id.studentOnboarding) //studentcode
-        wfdNoConnectionView.visibility = if (wfdAdapterEnabled && !wfdHasConnection) View.VISIBLE else View.GONE //studentcode
-        //val wfdNoConnectionView:ConstraintLayout = findViewById(R.id.serverOnboarding) //servercode
-        //wfdNoConnectionView.visibility = if (wfdAdapterEnabled && !wfdHasConnection) View.VISIBLE else View.GONE
+        //val wfdNoConnectionView:ConstraintLayout = findViewById(R.id.studentOnboarding) //studentcode
+        //wfdNoConnectionView.visibility = if (wfdAdapterEnabled && !wfdHasConnection) View.VISIBLE else View.GONE //studentcode
+        val wfdNoConnectionView:ConstraintLayout = findViewById(R.id.serverOnboarding) //servercode
+        wfdNoConnectionView.visibility = if (wfdAdapterEnabled && !wfdHasConnection) View.VISIBLE else View.GONE
 
         val rvPeerList: RecyclerView= findViewById(R.id.rvPeerListing)
         rvPeerList.visibility = if (wfdAdapterEnabled && !wfdHasConnection && hasDevices) View.VISIBLE else View.GONE
 
-        val wfdConnectedView:ConstraintLayout = findViewById(R.id.studentChat) //studentcode
-        wfdConnectedView.visibility = if(wfdHasConnection)View.VISIBLE else View.GONE //studentcode
-        //val wfdConnectedView:ConstraintLayout = findViewById(R.id.serverChat) //servercode
-        //wfdConnectedView.visibility = if(wfdHasConnection)View.VISIBLE else View.GONE //servercode
+        //val wfdConnectedView:ConstraintLayout = findViewById(R.id.studentChat) //studentcode
+        //wfdConnectedView.visibility = if(wfdHasConnection)View.VISIBLE else View.GONE //studentcode
+        val wfdConnectedView:ConstraintLayout = findViewById(R.id.serverChat) //servercode
+        wfdConnectedView.visibility = if(wfdHasConnection)View.VISIBLE else View.GONE //servercode
     }
 
     fun clientSendMessage(view: View){
@@ -194,7 +198,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
 
     override fun onGroupStatusChanged(groupInfo: WifiP2pGroup?) {
         val text = if (groupInfo == null){
-            "Class is not formed"
+            "Class failed to form; try toggling (turning off then on) the wifi button"
         } else {
             if(groupInfo.isGroupOwner){"Class has been formed"}
             else{"Class has been joined"}
