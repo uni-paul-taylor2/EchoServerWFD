@@ -245,9 +245,9 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
 
     override fun onNewStudent(student: String){
         student_id = student
-        runOnUiThread{
+        //runOnUiThread{
             findViewById<TextView>(R.id.student_chat_header).text = "Student Chat - $student"
-        }
+        //}
     }
 
 }

@@ -1,5 +1,6 @@
 package dev.kwasi.echoservercomplete.adapters
 
+import android.annotation.SuppressLint
 import android.provider.CalendarContract.Attendees
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -12,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView
 import dev.kwasi.echoservercomplete.R
 import dev.kwasi.echoservercomplete.adapters.PeerListAdapter.ViewHolder
 import dev.kwasi.echoservercomplete.models.ContentModel
+import kotlin.concurrent.thread
 
 class AttendeeListAdapter(private val attendeeInterface: AttendeeListAdapterInterface): RecyclerView.Adapter<AttendeeListAdapter.ViewHolder>(){
     private val attendees:MutableList<String> = mutableListOf()
@@ -38,8 +40,10 @@ class AttendeeListAdapter(private val attendeeInterface: AttendeeListAdapterInte
         return attendees.size
     }
 
-    fun updateAttendeesList(newAttendees: MutableList<String>){
+    @SuppressLint("NotifyDataSetChanged")
+    fun updateAttendeesList(newAttendees: MutableList<String>){thread{
         attendees.clear()
         attendees.addAll(newAttendees)
-    }
+        notifyDataSetChanged()
+    }}
 }

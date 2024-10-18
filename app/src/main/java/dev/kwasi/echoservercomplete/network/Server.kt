@@ -27,39 +27,45 @@ class Server(private val iFaceImpl:NetworkMessageInterface, attendees: AttendeeL
             while(true){try{
                 val client = SocketModel(svrSocket.accept())
                 //val clientAddress: String = client.socket.inetAddress.hostAddress!!
-                var clientStudentID: String = ""
-                try{
-                    //serverside handshake start
-                    if(client.read()!="I am here")
-                        throw Exception("Client Handshake Failed");
-                    client.send(client.cipher.makeNonce())
-                    if( !client.cipher.verify(client.read()) )
-                        throw Exception("Client Handshake Failed");
-                    //serverside handshake stop
-
-                    clientStudentID = client.cipher.getStudentID()!!
-                    clientMap.set(clientStudentID,client) //added to the map after handshake complete
-                    updateAttendeeList()
-                    Log.e("SERVER", "The server has accepted a connection")
-                    while(client.socket.isConnected){
-                        iFaceImpl.onContent( client.readMessage(true) )
-                    }
-                }
-                catch (e: Exception){
-                    if(client.socket.isConnected) client.socket.close();
-                    clientMap.remove(clientStudentID)
-                    updateAttendeeList()
-                    Log.e("SERVER", "An error occurred while handling a client")
-                    e.printStackTrace()
-                }
+                handleClient(client)
             }catch(e: Exception){}}
         }
     }
 
+    private fun handleClient(client: SocketModel){thread{
+        var clientStudentID: String = ""
+        try{
+            //serverside handshake start
+            if(client.read()!="I am here")
+                throw Exception("Client Handshake Failed");
+            client.send(client.cipher.makeNonce())
+            if( !client.cipher.verify(client.read()) )
+                throw Exception("Client Handshake Failed");
+            //serverside handshake stop
+
+            clientStudentID = client.cipher.getStudentID()!!
+            clientMap.set(clientStudentID,client) //added to the map after handshake complete
+            updateAttendeeList()
+            Log.e("SERVER", "The server has accepted a connection")
+            while(client.socket.isConnected){
+                iFaceImpl.onContent( client.readMessage(true) )
+            }
+        }
+        catch (e: Exception){
+            if(client.socket.isConnected) client.socket.close();
+            clientMap.remove(clientStudentID)
+            updateAttendeeList()
+            Log.e("SERVER", "An error occurred while handling a client")
+            e.printStackTrace()
+        }
+    }}
+
     private fun updateAttendeeList(){
         val students: MutableList<String> = mutableListOf()
+        Log.e("SERVER","students in hashmap "+clientMap.size)
         for(key in clientMap.keys){
             students.add(key)
+            Log.e("SERVER","student id of $key")
         }
         attendeeListAdapter.updateAttendeesList(students)
     }

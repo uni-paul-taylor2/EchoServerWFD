@@ -31,12 +31,11 @@ class ChatListAdapter(isStudent: Boolean) : RecyclerView.Adapter<ChatListAdapter
         }
         else {
             (holder.messageView.parent as RelativeLayout).gravity =
-                if (chat.student_id == "192.168.49.1") Gravity.START else Gravity.END;
+                if (chat.student_id == "192.168.49.1") Gravity.END else Gravity.START;
         }
         val message: String = chat.message
         val studentID: String = chat.student_id
         holder.messageView.text = "$studentID: $message"
-
     }
 
     override fun getItemCount(): Int {
