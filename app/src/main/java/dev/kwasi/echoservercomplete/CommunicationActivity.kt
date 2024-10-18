@@ -74,10 +74,10 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         rvPeerList.adapter = peerListAdapter
         rvPeerList.layoutManager = LinearLayoutManager(this)
 
-        chatListAdapter = ChatListAdapter(true) //studentcode
-        val rvChatList: RecyclerView = findViewById(R.id.rvStudentChat) //studentcode
-        //chatListAdapter = ChatListAdapter(false) //servercode
-        //val rvChatList: RecyclerView = findViewById(R.id.rvServerChat) //servercode
+        //chatListAdapter = ChatListAdapter(true) //studentcode
+        //val rvChatList: RecyclerView = findViewById(R.id.rvStudentChat) //studentcode
+        chatListAdapter = ChatListAdapter(false) //servercode
+        val rvChatList: RecyclerView = findViewById(R.id.rvServerChat) //servercode
         rvChatList.adapter = chatListAdapter
         rvChatList.layoutManager = LinearLayoutManager(this)
 
@@ -145,18 +145,18 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         val wfdAdapterErrorView:ConstraintLayout = findViewById(R.id.clWfdAdapterDisabled)
         wfdAdapterErrorView.visibility = if (!wfdAdapterEnabled) View.VISIBLE else View.GONE
 
-        val wfdNoConnectionView:ConstraintLayout = findViewById(R.id.studentOnboarding) //studentcode
-        wfdNoConnectionView.visibility = if (wfdAdapterEnabled && !wfdHasConnection) View.VISIBLE else View.GONE //studentcode
-        //val wfdNoConnectionView:ConstraintLayout = findViewById(R.id.serverOnboarding) //servercode
-        //wfdNoConnectionView.visibility = if (wfdAdapterEnabled && !wfdHasConnection) View.VISIBLE else View.GONE
+        //val wfdNoConnectionView:ConstraintLayout = findViewById(R.id.studentOnboarding) //studentcode
+        //wfdNoConnectionView.visibility = if (wfdAdapterEnabled && !wfdHasConnection) View.VISIBLE else View.GONE //studentcode
+        val wfdNoConnectionView:ConstraintLayout = findViewById(R.id.serverOnboarding) //servercode
+        wfdNoConnectionView.visibility = if (wfdAdapterEnabled && !wfdHasConnection) View.VISIBLE else View.GONE
 
         val rvPeerList: RecyclerView= findViewById(R.id.rvPeerListing)
         rvPeerList.visibility = if (wfdAdapterEnabled && !wfdHasConnection && hasDevices) View.VISIBLE else View.GONE
 
-        val wfdConnectedView:ConstraintLayout = findViewById(R.id.studentChat) //studentcode
-        wfdConnectedView.visibility = if(wfdHasConnection)View.VISIBLE else View.GONE //studentcode
-        //val wfdConnectedView:ConstraintLayout = findViewById(R.id.serverChat) //servercode
-        //wfdConnectedView.visibility = if(wfdHasConnection)View.VISIBLE else View.GONE //servercode
+        //val wfdConnectedView:ConstraintLayout = findViewById(R.id.studentChat) //studentcode
+        //wfdConnectedView.visibility = if(wfdHasConnection)View.VISIBLE else View.GONE //studentcode
+        val wfdConnectedView:ConstraintLayout = findViewById(R.id.serverChat) //servercode
+        wfdConnectedView.visibility = if(wfdHasConnection)View.VISIBLE else View.GONE //servercode
     }
 
     fun clientSendMessage(view: View){
