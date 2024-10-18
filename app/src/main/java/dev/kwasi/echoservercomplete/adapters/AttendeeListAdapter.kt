@@ -1,7 +1,10 @@
 package dev.kwasi.echoservercomplete.adapters
 
 import android.annotation.SuppressLint
+import android.os.Handler
+import android.os.Looper
 import android.provider.CalendarContract.Attendees
+import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -41,9 +44,10 @@ class AttendeeListAdapter(private val attendeeInterface: AttendeeListAdapterInte
     }
 
     @SuppressLint("NotifyDataSetChanged")
-    fun updateAttendeesList(newAttendees: MutableList<String>){thread{
+    fun updateAttendeesList(newAttendees: MutableList<String>){
         attendees.clear()
         attendees.addAll(newAttendees)
-        notifyDataSetChanged()
-    }}
+        Log.e("AttendeeListAdapter","size of items: "+newAttendees.size)
+        Handler(Looper.getMainLooper()).post {notifyDataSetChanged()} //chatgpt inspired code, wow, we reached here
+    }
 }
