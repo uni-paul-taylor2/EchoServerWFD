@@ -96,6 +96,7 @@ class WifiDirectManager(
 
             override fun onFailure(reason: Int) {
                 Log.e("WFDManager","An error occurred while trying to connect to a peer '${peer.deviceName}'")
+                iFaceImpl.onGroupStatusChanged(null)
             }
 
         })
